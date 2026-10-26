@@ -21,4 +21,4 @@ La app está dirigida a personas mayores de 18 años.
 Si esta política cambia, se publicará la nueva versión en esta misma página.
 
 ## Contacto
-Para cualquier consulta sobre esta política, escribe a: (correo de contacto)
+Para cualquier consulta sobre esta política, escribe a: ventas@remax.net.pe
