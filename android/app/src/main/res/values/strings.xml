@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">REMAX Perú</string>
+    <string name="title_activity_main">REMAX Perú</string>
+    <string name="package_name">pe.inmuebles.espejo</string>
+    <string name="custom_url_scheme">pe.inmuebles.espejo</string>
+</resources>

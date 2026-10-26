@@ -1,0 +1,14 @@
+{
+  "appId": "pe.inmuebles.espejo",
+  "appName": "REMAX Perú",
+  "webDir": "www",
+  "server": {
+    "allowNavigation": [
+      "remax.pe",
+      "*.remax.pe"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
