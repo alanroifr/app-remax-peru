@@ -2,3 +2,7 @@ node_modules/
 android/app/build/
 android/.gradle/
 ios/App/Pods/
+
+# Claves de firma: nunca subirlas al repositorio
+*.keystore
+*.jks

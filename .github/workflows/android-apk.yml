@@ -11,6 +11,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,16 +24,44 @@ jobs:
           java-version: 21
       - run: npm ci
       - run: npx cap sync android
-      - run: ./gradlew assembleDebug
+
+      # Versión final firmada (cuando los secretos de firma están cargados en GitHub)
+      - name: Preparar clave de firma
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/remax.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/remax.keystore" >> "$GITHUB_ENV"
+      - name: Compilar versión final firmada (APK y AAB)
+        if: env.HAS_KEYSTORE == 'true'
         working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease bundleRelease
+          cp app/build/outputs/apk/release/app-release.apk ../REMAX-Peru.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../REMAX-Peru.aab
+
+      # Versión de prueba (si todavía no hay clave de firma)
+      - name: Compilar versión de prueba
+        if: env.HAS_KEYSTORE != 'true'
+        working-directory: android
+        run: |
+          ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk ../REMAX-Peru.apk
+
       - uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-      - run: cp android/app/build/outputs/apk/debug/app-debug.apk REMAX-Peru.apk
+          name: remax-peru-android
+          path: |
+            REMAX-Peru.apk
+            REMAX-Peru.aab
+          if-no-files-found: ignore
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: REMAX Perú v1.0.${{ github.run_number }}
           body: Instala REMAX-Peru.apk en tu celular Android.
           files: REMAX-Peru.apk
+          make_latest: true
