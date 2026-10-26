@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,3 +28,10 @@ jobs:
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk REMAX-Peru.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: REMAX Perú v1.0.${{ github.run_number }}
+          body: Instala REMAX-Peru.apk en tu celular Android.
+          files: REMAX-Peru.apk

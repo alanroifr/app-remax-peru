@@ -11,7 +11,7 @@ El botón "Soy agente" abre https://www.remax.pe/accounts/login-sigi/ (definido 
 
 ## Generar el instalable
 
-- **Android (automático):** sube esta carpeta a un repositorio de GitHub. El flujo `.github/workflows/android-apk.yml` genera `app-debug.apk` en cada cambio a `main`. Lo descargas desde la pestaña Actions.
+- **Android (automático):** sube esta carpeta a un repositorio de GitHub. El flujo `.github/workflows/android-apk.yml` genera el APK en cada cambio a `main` y lo publica en la sección Releases del repositorio como `REMAX-Peru.apk`.
 - **Android (en tu PC):** instala Android Studio y ejecuta `npx cap open android`. Luego usa Build > Build APK.
 - **iOS:** necesitas una Mac con Xcode. Ejecuta `npx cap open ios`.
 
