@@ -4,7 +4,7 @@ android {
     namespace = "pe.inmuebles.espejo"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "pe.inmuebles.espejo"
+        applicationId "pe.remax.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Cada build de GitHub Actions sube el número de versión para que el celular acepte la actualización

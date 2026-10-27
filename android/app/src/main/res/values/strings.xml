@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">REMAX Perú</string>
     <string name="title_activity_main">REMAX Perú</string>
-    <string name="package_name">pe.inmuebles.espejo</string>
-    <string name="custom_url_scheme">pe.inmuebles.espejo</string>
+    <string name="package_name">pe.remax.app</string>
+    <string name="custom_url_scheme">pe.remax.app</string>
 </resources>
