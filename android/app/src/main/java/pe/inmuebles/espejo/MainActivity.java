@@ -10,6 +10,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -23,6 +24,7 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
@@ -36,6 +38,25 @@ public class MainActivity extends BridgeActivity {
 
     private ProgressBar barraCarga;
     private View avisoSinConexion;
+    private SwipeRefreshLayout recargar;
+    // Lo marca la página cuando el dedo empieza sobre el mapa o dentro de una lista ya desplazada;
+    // en ese caso deslizar hacia abajo debe mover el contenido y no recargar.
+    private volatile boolean toqueBloqueaRecarga = false;
+
+    // Se avisa en cada toque de la página: true si el dedo empezó sobre un mapa o una zona desplazada.
+    private static final String JS_TOQUES =
+        "(function(){if(window.__remaxToques)return;window.__remaxToques=true;" +
+        "document.addEventListener('touchstart',function(e){var b=false,n=e.target;" +
+        "while(n&&n.nodeType===1){if(n.classList&&(n.classList.contains('leaflet-container')||n.classList.contains('gm-style'))){b=true;break;}" +
+        "if(n.scrollTop>0&&n!==document.documentElement&&n!==document.body){b=true;break;}n=n.parentNode;}" +
+        "if(window.RemaxToque)RemaxToque.inicio(b);},{passive:true,capture:true});})();";
+
+    private class PuenteToques {
+        @JavascriptInterface
+        public void inicio(boolean bloquea) {
+            toqueBloqueaRecarga = bloquea;
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,6 +68,7 @@ public class MainActivity extends BridgeActivity {
 
         crearBarraCarga();
         crearAvisoSinConexion();
+        crearDeslizarParaRecargar(webView);
 
         getBridge().setWebViewClient(new MapaWebViewClient(getBridge()));
         webView.setWebChromeClient(new ProgresoChromeClient(getBridge()));
@@ -64,6 +86,24 @@ public class MainActivity extends BridgeActivity {
                 }
             }
         });
+    }
+
+    // Deslizar hacia abajo desde arriba de la página la vuelve a cargar.
+    private void crearDeslizarParaRecargar(WebView webView) {
+        ViewGroup padre = (ViewGroup) webView.getParent();
+        int posicion = padre.indexOfChild(webView);
+        ViewGroup.LayoutParams lp = webView.getLayoutParams();
+        padre.removeView(webView);
+        recargar = new SwipeRefreshLayout(this);
+        recargar.addView(webView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        padre.addView(recargar, posicion, lp);
+        recargar.setColorSchemeColors(AZUL_REMAX);
+        recargar.setOnChildScrollUpCallback((parent, child) -> toqueBloqueaRecarga || webView.canScrollVertically(-1));
+        recargar.setOnRefreshListener(() -> {
+            avisoSinConexion.setVisibility(View.GONE);
+            webView.reload();
+        });
+        webView.addJavascriptInterface(new PuenteToques(), "RemaxToque");
     }
 
     private int dp(int valor) {
@@ -223,6 +263,9 @@ public class MainActivity extends BridgeActivity {
             super.onPageFinished(view, url);
             // La página de error del navegador también "termina"; mantenemos el aviso encima.
             avisoSinConexion.setVisibility(fallo ? View.VISIBLE : View.GONE);
+            recargar.setRefreshing(false);
+            toqueBloqueaRecarga = false;
+            view.evaluateJavascript(JS_TOQUES, null);
         }
     }
 }
